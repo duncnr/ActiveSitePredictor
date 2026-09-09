@@ -1,0 +1,290 @@
+\documentclass[12pt]{article}
+
+% Encoding and fonts
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+% Page layout
+\usepackage[margin=0.75in]{geometry}
+\usepackage{multicol}
+\usepackage{indentfirst}
+\usepackage{setspace}
+
+\setstretch{1.2}
+
+% Mathematics
+\usepackage{amsmath,amssymb,amsthm}
+
+% Graphics and tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+
+% Lists
+\usepackage{enumitem}
+
+% Colors and hyperlinks
+\usepackage{xcolor}
+\usepackage[colorlinks=true, urlcolor=blue]{hyperref}
+
+% Paragraph formatting
+\setlength{\parskip}{0.75em}
+
+% Title Formatting
+\title{Active Site Predictor Proposal}
+\author{Duncan Ritchie Ian Carr}
+\date{\today}
+
+\makeatletter
+\newcommand{\mytitle} {
+	\begin{center}
+		\LARGE\bfseries\@title
+	\end{center}
+
+	\begin{center}
+		\begin{tabularx}{0.80\textwidth}{@{}L{1} C{1.2} C{1.2} R{0.6}@{}}
+			\@author & CS 4800-102 & \@date & Waters
+		\end{tabularx}
+	\end{center}
+}
+\makeatother
+
+% user defined functions
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\newcolumntype{C}[1]{>{\hsize=#1\hsize\centering\arraybackslash}X}
+\newcolumntype{R}[1]{>{\hsize=#1\hsize\raggedleft\arraybackslash}X}
+
+% formatting checks
+% \overfullrule=1pt
+
+\begin{document}
+
+	\mytitle
+
+	\section*{Background}
+
+		\subsection*{Overview}
+
+		The Central Dogma of Biology is the theory that information is encoded as
+		DNA, transcribed as RNA, and translated into proteins. DNA is the basic
+		building block of all living organisms. DNA or deoxyribose nucleic acids 
+		are a class of molecules that is comprised (for brevity) four so-called 
+		'bases'. These bases are the molecules adenine, cytosine, guanine, and 
+		thymine, each represented by the single letter codes A, C, G, and T,
+		respectively. DNA can then be represented by a string of these single 
+		letter codes. 
+
+		Some sections of DNA encode for genes that will later be translated into
+		3D structures called proteins. However, to get to that point, DNA must 
+		first be transcribed into RNA or ribonucleic acid. During transcription,
+		the transcribed DNA sequence remains relatively unchanged, but in this
+		chemical form, the RNA molecule, a sequence that retains the same
+		information as the DNA sequence, is able to leave the organelle where
+		all of a cell's DNA is contained.
+
+		An RNA molecule is then able to travel into a cell's intracelluar matrix,
+		or cytoskeleton, where it then undergos translation by a ribosome. The
+		RNA molecule that contains the same information as the original DNA gene
+		sequence adheres to a ribosome. The ribosome views a set of three bases
+		along the RNA molecule and translates that set into a single amino acid.
+		Once a set of three bases, or codon, is read and translated, the ribosome
+		shifts three bases and translates the next codon into another amino 
+		acid. The ribosome moves along the RNA molecule in this fashion until
+		the end of the sequence is reached. The form of the translated RNA molecule
+		is now an amino acid chain linked by peptide bonds, this is also called a
+		polypeptide chain.
+
+		Polypeptide chains are what proteins are made from, and each of the 20 
+		amino acids that may be contained within any given chain are separated
+		into their own classes based on the chemical properties they exhibit.
+		These properties are the basis of protein folding. The polypeptide chain
+		may start to fold into its final protein form, but will typically be
+		transported to an additional organelle, the Golgi apparatus. In the Golgi
+		apparatus, the polypeptide chain is correctly folded into its final form
+		of a functional, or non-functional protein. These final proteins are
+		the cell's workers, performing countless essential tasks your body
+		needs to function normally, without issue. Functional proteins, or
+		enzymes, are those that carry out some chemical process, whether that
+		process be anabolic (creating one molecule from multiple substrate 
+		subunits) or catabolic (breaking one substrate down into multiple).
+
+		Molecules that bind to an enzyme are called substrates, and these
+		so-called substrates can only bind to specific regions of the enzyme's
+		3D structure. The regions where substrates may bind are called active
+		sites, or catalytic centers. Substrates are able to bind to the active
+		site of an enzyme because of the specific amino acids, or residues,
+		placed along the surface of the protein and/or pocket of the active site.
+		Proteins' active site are typically confirmed using technical lab
+		techniques, but with this age of computing, predicting structures,
+		properties, substrates, and biochemical pathways have reduced in-lab
+		analysis. 
+
+		One way to predict catalytic centers, or active sites, is to use a 
+		motif detection approach. A motif is a well-known set of neighboring
+		residues, or amino acids, that expresses some sort of attractive force
+		for incoming substrates. Additionally, conservation between proteins
+		in the same protein families has become an increasingly common approach
+		to identify and predict how a protein may be used within a biochemical
+		pathway.
+
+		Finally, this project's purpose is to predict active sites for given
+		proteins using Haskell as an underlying computational workhorse to 
+		predict active sites, delivering the computed data to a C++ protein viewer
+		highlighting the top-most predicted active site candidates. Duncan 
+		Ritchie and Ian Carr will be working this semester to create a working
+		prototype of this project detailed below.
+
+		\subsection*{Features}
+
+		While there's really only one main feature the user can interact with,
+		this space will be used to describe the interal process of how this
+		tool will work.
+
+		At the command line, as the executable is called, an argument to the
+		executable will be the accession number (a unique ID) of a protein.
+		This accession number will be searched for and downloaded from the 
+		RCSB PDB database. The file will then be automatically stripped of 
+		all metadata and the transformation will result in only the structural
+		data of the protein. The structural data will contain the spatial
+		coordinates of individual atoms, the residue (molecule) those atoms
+		are associated with, the sequence number the residue is associated with,
+		and other unique identifiers for individual atoms.
+
+		An initial C++ (phase 1) layer will access the RCSB PDB using REST API
+		calls paired with RCSB PDB's web API. In phase 1, the C++ script will
+		download the respective protein file, and pass that data to a Haskell
+		script (phase 2) that will handle all parsing. After phase 2, the parsed
+		data will then be analyzed by other Haskell scripts (phase 3) to handle
+		internal computations like residue mapping and motif detection. Phase 3
+		will also handle active site scoring, used to predict candidate active 
+		site regions. Finally, in phase 4, the computed results will be passed
+		to another C++ script to handle protein visualization and graphics 
+		rendering using Vulkan. Vulkan is notoriously low--level and discrete,
+		buffers will need to be manually allocated and data will need to be 
+		manually uploaded and passed to the GPU. The resulting protein model will
+		be rendered to the screen with a custom made low--level cross platform 
+		Vulkan forward rendered rasterization engine. The most high scoring 
+		candidate regions will then be highlighted within the protein model.
+		The screen will be interactable, and you will be able to pan and rotate
+		around the protein body, select which parts to render (everything,
+		active sites only, or non--active sites only). The renderer will
+		feature basic phong and dot based shading. Steps will be taken to ensure
+		that this program is cross compatible with Linux and Windows devices.
+
+
+		\subsection*{Final Product}
+
+		In its final form, this tool will be a command line tool that will take,
+		as input, the accession number of the protein in question (in RCSB PDB
+		format), and as output, display a model of the the protein with thea
+		predicted candidate active site regions highlighted within the model. 
+
+		Additionally, testing of this tool will be carried out by comparing the
+		active sites of known, experimentally validated proteins.
+
+	\section*{Skills}
+
+		\subsection*{Possessed}
+
+		Already acquired skills that will help with the completion of this project
+		include, but are not limited to:
+
+		\begin{itemize}[noitemsep]
+			\item Most of the Biology theory behind the project is known by
+				one of the group members.
+			\item Proficiency in both C++ and Haskell languages.
+			\item Proficiency in Haskell parsing techniques, and functional
+				programming paradigm.
+			\item Proficiency in graphics programming, though known libraries
+				may be higher-level compared to Vulkan.
+			\item Both group members are passionate about each portion of the
+				project, (Duncan - biology theory, Ian - graphics).
+		\end{itemize}
+
+		\subsection*{To Learn}
+
+		Skills necessary to learn for the completion of this project include,
+		but are not limited to:
+		
+		\begin{itemize}[noitemsep]
+			\item Understanding build and metabuild systems to seamlessly work
+				across different operating systems.
+			\item Understanding Haskell and C++ FFI bridge system.
+			\item Understanding REST APIs and the RCSB PDB web API.
+			\item Understanding the Vulkan graphics library to visualize protein
+				models.
+			\item Optimizing scoring algorithm, ensuring accuracy and scientific
+				reliability and validity.
+			\item Understanding specific motif patterns and conservation to make
+				reasonable scoring system.
+		\end{itemize}
+
+	\section*{Challenges}
+
+	One major challenge will be explaining the biology theory to classmates
+	as they may check in, ask questions, and suggest ideas or solutions.
+	Getting the devised system to work cohesively together may prove to be
+	a major challenge as each partner is working on different operating systems,
+	as well as leveraging aggregated programming languages. Finally, the Vulkan
+	ecosystem is quite low-level and will require a major time commitment to
+	get working. Project and architecture design will be the main starting point,
+	ensuring a modular, easy--to--debug system. Finally, Duncan has been taking
+	time from his CS degree to focus on his minors for the past several semesters
+	and will need to get back into the groove of programming, especially in C++.
+
+	\section*{Division of Labor}
+
+	As for how the labor of the project will be broken up between members, 
+	Duncan will take on the role of Chief Algorithmic Engineer, while Ian will
+	spearhead as the Graphics Department's Executive Director. All fun aside,
+	a more detailed list of objectives and tasks by each team member is outlined 
+	below.
+
+	\section*{Literature Review}
+
+	Similar work for the Haskell programming side includes a statistical model
+	predicting active sites (1), that include other resources of interest, such as
+	catalytic motifs and a basis for residue scoring (2). A separate paper includes
+	a technique for dimensional analysis for finding clefts and pockets within
+	or around the surface of the protein (3).
+
+	\begin{enumerate}[noitemsep]
+		\item \href{https://pubmed.ncbi.nlm.nih.gov/20080507/}{Active site prediction using evolutionary and structural information}
+	\item \href{https://www.sciencedirect.com/science/article/pii/S0022283602010367}{Analysis of Catalytic Residues in Enzyme Active Sites}
+	\item \href{https://pmc.ncbi.nlm.nih.gov/articles/PMC2700099/}{Fpocket: An open source platform for ligand pocket detection}
+	\end{enumerate}
+	
+	Additionally, for the graphics section of this progect, a sample section of
+	code as a "Hello World'' equivalent is available on GitHub and will be used
+	as a reference (1). Another section of sample code showing a basic Blinn 
+	Phong shading model, while displaying the processed affect (2). Finally, a
+	paper explains the math behind modern day perspective projection matrices (3).
+
+	\begin{enumerate}[noitemsep]
+		\item \href{https://gist.github.com/Overv/7ac07356037592a1121225172d7d78f2d}{HelloTriangle.cc}
+		\item \href{https://www.shadertoy.com/view/3d3cWN}{Blinn Phong Model}
+		\item \href{https://dl.acm.org/doi/pdf/10.1145/356744.356750}{Planar Geometric Projections and Viewing Transformations}
+	\end{enumerate}
+
+	\section*{Stretch Goals}
+
+	A few stretch goals for this project are:
+
+	\begin{itemize}[noitemsep]
+		\item Implementing conservation scoring by fetching protein conservation
+			data, parallel processing of amino acid sequence, and joining
+			conservation, structural, and motif scores on individual residues.
+		\item Implementing shadow mapping into the renderer so it is more visually
+			appealing. Showing depth in an image is an important part of graphics
+			programming
+		\item Different ways to render the protein molecules. There will be the
+			base approach which simply renders spheres, and possibly a complex
+			one which renders helixes
+		\item Support for Macs and Apple devices using the MoltenVK layer
+		\item Antialiasing (MSAA or FXAA.Undecided)
+	\end{itemize}
+
+\end{document}

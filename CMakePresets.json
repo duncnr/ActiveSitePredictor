@@ -11,7 +11,7 @@
     },
     {
     	"name": "linux-debug",
-      "generator": "Make",
+      "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
