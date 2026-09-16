@@ -2,6 +2,10 @@
 #include "GLFW/glfw3.h"
 
 int main() {
+	if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) {
+		glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+	}
+
     if (!glfwInit()) {
         return -1;
     }
