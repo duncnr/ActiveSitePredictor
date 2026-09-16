@@ -9,21 +9,14 @@ set(CMAKE_CONFIGURATION_TYPES Release Debug)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # 1. Define where Cabal will build the library
-set(HASKELL_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/haskell)
+set(HASKELL_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/haskell)
 set(HASKELL_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/haskell_build)
-
-if(WIN32)
-    set(HASKELL_LIB_NAME "asplib.dll")
-else()
-    set(HASKELL_LIB_NAME "asplib.a")
-endif()
-
-set(HASKELL_LIB_PATH ${HASKELL_BUILD_DIR}/build/${LIB_NAME})
+set(HASKELL_LIB_PATH ${HASKELL_BUILD_DIR}/build/asplib.a)
 
 ExternalProject_Add(haskell_target
     SOURCE_DIR ${HASKELL_SRC_DIR}
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ghc -no-hs-main -staticlib Main.hs -o asplib.a
+    BUILD_COMMAND cabal build asplib
     INSTALL_COMMAND ""
     BUILD_BYPRODUCTS ${HASKELL_LIB_PATH}
 )

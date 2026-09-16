@@ -3,7 +3,7 @@ name:                hslib
 version:             0.1.0.0
 
 foreign-library asplib
-  type:                native-static
+  type:                native-shared
   options:             standalone
   hs-source-dirs:      .
   other-modules:       ASPLib
