@@ -7,11 +7,11 @@ foreign-library asplib
 	type:                native-shared
 	options:             standalone
 	hs-source-dirs:      .
-	other-modules:       
+	other-modules:
 		ASPLib
 		Retrival
 
-	build-depends:       
+	build-depends:
 		base,
 		req,
 		aeson
