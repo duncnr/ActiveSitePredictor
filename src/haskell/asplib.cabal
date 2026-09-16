@@ -1,0 +1,10 @@
+cabal-version:       2.4
+name:                hslib
+version:             0.1.0.0
+
+foreign-library asplib
+  type:                native-static
+  options:             standalone
+  hs-source-dirs:      .
+  other-modules:       ASPLib
+  build-depends:       base
