@@ -1,10 +1,15 @@
-module Data.Retrieval where
+module Data.Retrieval (pipe) where
 
--- import Network.Wreq
+import Network.HTTP.Req
 -- import Control.Lens (view)
 -- import Data.Aeson.Lens (key, _String)
 -- import qualified Data.ByteString.Lazy.Char8 as BL
 
-getPath :: String -> String
-getPath e = "https://rcsb.org/rest/v1/core/entry/" ++ e
+pipe :: String -> Url
+pipe = getPath e
+
+getPath :: String -> Url 
+getPath e = https "rcsb.org" /: "rest" /: "v1" /: "core" /: "entry" /: e
+
+
 
