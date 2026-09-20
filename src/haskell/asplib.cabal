@@ -1,0 +1,23 @@
+cabal-version:       2.4
+name:                hslib
+version:             0.1.0.0
+build-type:          Simple
+
+foreign-library asplib
+   type:                native-shared
+   options:             standalone
+   hs-source-dirs:      .
+
+   other-modules:       
+      ASPLib,
+      Data.Retrieval
+
+   build-depends:       
+      base,
+      req,
+      aeson,
+      text,
+      bytestring
+
+   default-language:		Haskell2010
+
