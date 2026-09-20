@@ -14,10 +14,11 @@ the necessary background information needed to understand what this project
 is used for.
 
 ### Building
-1. Install Haskell and CMake
-2. CD into this project
-3. Run `cmake -S . -B build --preset windows-debug` 
+1. Clone this project recursively (--recursive)
+2. Install Haskell, the Vulkan SDK, and CMake
+3. CD into this project
+4. Run `cmake -B build --preset windows-debug` 
 	* 'build' can be the build folder name of choice
 	* valid presets are (windows/linux)-(debug/release)
-4. Run `cmake --build build`
-5. Compiled Executable should be in `build/bin`
+5. Run `cmake --build build`
+6. Compiled Executable should be in `build/bin`
