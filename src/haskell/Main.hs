@@ -3,7 +3,7 @@
 module Main where
 
 import Data.Retrieval as R
-import Data.Aeson
+import Data.Char as C
 import Foreign.C.Types
 import qualified Data.ByteString.Lazy as BS
 
@@ -22,6 +22,6 @@ main :: IO ()
 main = do
    putStrLn "Enter RCSB protein ID: "
    id <- getLine
-   f <- pipeline id
-   BS.writeFile ("./Test/" ++ id ++ ".txt") f
+   f <- pipeline $ map C.toLower id
+   BS.writeFile ("./Test/" ++ id ++ ".cif.gz") f
 
