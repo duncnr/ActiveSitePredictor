@@ -8,11 +8,15 @@ foreign-library asplib
    options:             standalone
    hs-source-dirs:      .
 
-   other-modules:       
-      ASPLib,
-      Data.Retrieval
+   if os(Windows)
+--   required for fuckass windows. I spent 4 fucking hours on this shit
+     mod-def-file: asplib-def.def
 
-   build-depends:       
+   other-modules:
+      ASPLib
+--      Data.Retrieval
+
+   build-depends:
       base,
       req,
       aeson,
@@ -20,4 +24,3 @@ foreign-library asplib
       bytestring
 
    default-language:		Haskell2010
-
