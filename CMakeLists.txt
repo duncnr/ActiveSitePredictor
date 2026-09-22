@@ -24,14 +24,13 @@ add_custom_target(haskell_asp ALL
     COMMENT "Building Haskell"
 )
 
-file(GLOB_RECURSE HASKELL_STUB
-    "${HASKELL_BUILD_DIR}/*/asplib.dll"
-)
+if(WIN32)
+	set(HASKELL_LIBRARY_NAME "${HASKELL_BUILD_DIR}/*/asplib.dll")
+else()
+	set(HASKELL_LIBRARY_NAME "${HASKELL_BUILD_DIR}/*/asplib.so")
+endif()
 
-get_filename_component(HASKELL_STUB_DIR
-    "${HASKELL_STUB}"
-    DIRECTORY
-)
+file(GLOB_RECURSE HASKELL_LIBRARY ${HASKELL_LIBRARY_NAME})
 
 # ideally would use find_package, unsure how that's supposed to work on windows though
 # TODO: Conan support?
@@ -49,7 +48,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	${HASKELL_STUB_DIR}/asplib.dll
+	${HASKELL_LIBRARY}
 	glfw
 )
 
