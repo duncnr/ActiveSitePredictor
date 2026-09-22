@@ -1,3 +1,5 @@
 build/
 .git/
 CMakeFiles/
+src/haskell/dist-newstyle
+src/haskell/cabal.project.local*

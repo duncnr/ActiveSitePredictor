@@ -1,19 +1,10 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 module Main where
 
 import Data.Retrieval as R
 import Data.Char as C
 import Foreign.C.Types
+-- import Data.Aeson
 import qualified Data.ByteString.Lazy as BS
-
-{-
-foreign export ccall "haskell_add" add :: CInt -> CInt -> CInt
-
-add :: CInt -> CInt -> CInt
-add x y = x + y
-{-# NOINLINE add #-}
--}
 
 pipeline :: String -> IO BS.ByteString
 pipeline e = R.pipe e

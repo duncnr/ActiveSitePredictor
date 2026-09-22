@@ -1,4 +1,0 @@
-ignore-project: False
-
-program-options
-  ghc-pkg-options: --global-package-db=/usr/lib/ghc-9.6.6/lib/static-package.conf.d

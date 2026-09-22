@@ -7,20 +7,30 @@ include(ExternalProject) # ExternalProject_add
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # For LSPs
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CONFIGURATION_TYPES Release Debug)
+#set(CMAKE_CONFIGURATION_TYPES Release Debug)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # Haskell compilation
+# https://github.com/minimapletinytools/haskell-ffi-cabal-foreign-library-examples/blob/master/Makefile
+find_program(CABAL cabal REQUIRED)
 set(HASKELL_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/haskell)
 set(HASKELL_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/haskell_build)
-set(HASKELL_LIB_PATH ${HASKELL_BUILD_DIR}/build/asplib.dll)
+
 file(GLOB_RECURSE HASKELL_SOURCES CONFIGURE_DEPENDS "src/haskell/*")
 add_custom_target(haskell_asp ALL
-    COMMAND cabal build --builddir ${HASKELL_BUILD_DIR}
+    COMMAND ${CABAL} build --builddir ${HASKELL_BUILD_DIR}
     DEPENDS ${HASKELL_SOURCES}
     WORKING_DIRECTORY ${HASKELL_SRC_DIR}
-    BYPRODUCTS "${HASKELL_LIB_PATH}"
     COMMENT "Building Haskell"
+)
+
+file(GLOB_RECURSE HASKELL_STUB
+    "${HASKELL_BUILD_DIR}/*/asplib.dll"
+)
+
+get_filename_component(HASKELL_STUB_DIR
+    "${HASKELL_STUB}"
+    DIRECTORY
 )
 
 # ideally would use find_package, unsure how that's supposed to work on windows though
@@ -39,6 +49,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+	${HASKELL_STUB_DIR}/asplib.dll
 	glfw
 )
 
