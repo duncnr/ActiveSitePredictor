@@ -2,8 +2,6 @@ module Main where
 
 import Data.Retrieval as R
 import Data.Char as C
-import Foreign.C.Types
--- import Data.Aeson
 import qualified Data.ByteString.Lazy as BS
 
 pipeline :: String -> IO BS.ByteString

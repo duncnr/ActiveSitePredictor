@@ -5,8 +5,6 @@ module Data.Retrieval (pipe) where
 
 import Network.HTTP.Req
 import qualified Data.Text as T
--- import Control.Lens (view)
--- import Data.Aeson
 import qualified Data.ByteString.Lazy as BS
 
 pipe :: String -> IO BS.ByteString

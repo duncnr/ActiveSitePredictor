@@ -1,4 +1,4 @@
-cabal-version:       2.4
+cabal-version:       3.8
 name:                hslib
 version:             0.1.0.0
 build-type:          Simple
@@ -14,7 +14,7 @@ foreign-library asplib
 
    other-modules:
       ASPLib
---      Data.Retrieval
+      Data.Retrieval
 
    build-depends:
       base,
@@ -24,3 +24,7 @@ foreign-library asplib
       bytestring
 
    default-language:		Haskell2010
+
+   -- ghc-options: -shared -fPIC
+   -- ld-options: -shared
+
