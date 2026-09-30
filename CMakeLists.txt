@@ -34,6 +34,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	glfw
 )
 
+if(NOT WIN32)
+   target_link_libraries(${PROJECT_NAME} PRIVATE
+      ${GHC_RTS_LIBRARY}
+   )
+endif()
+
 # for later.. copy resources (models, shaders) after build
 #[[
 add_custom_command(
