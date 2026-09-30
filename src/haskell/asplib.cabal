@@ -4,27 +4,27 @@ version:             0.1.0.0
 build-type:          Simple
 
 foreign-library asplib
-   type:                native-shared
-   options:             standalone
-   hs-source-dirs:      .
+	type:                native-shared
+	options:             standalone
+	hs-source-dirs:      .
 
-   if os(Windows)
---   required for fuckass windows. I spent 4 fucking hours on this shit
-     mod-def-file: asplib-def.def
+	if os(Windows)
+		-- required definitions for windows
+	    mod-def-file: asplib-def.def
 
-   other-modules:
-      ASPLib
-      Data.Retrieval
+	if os(Linux)
+		ghc-options:
+		    -flink-rts
 
-   build-depends:
-      base,
-      req,
-      aeson,
-      text,
-      bytestring
+	other-modules:
+	    ASPLib
+	    Data.Retrieval
 
-   default-language:		Haskell2010
+	build-depends:
+	    base,
+	    req,
+	    aeson,
+	    text,
+	    bytestring
 
-   -- ghc-options: -shared -fPIC
-   -- ld-options: -shared
-
+	default-language:		Haskell2010
