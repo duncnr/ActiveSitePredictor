@@ -2,8 +2,8 @@
 
 find_program(CABAL cabal REQUIRED)
 
-set(HASKELL_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/haskell")
-set(HASKELL_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/haskell")
+set(HASKELL_SRC_DIR "${CMAKE_SOURCE_DIR}/src/haskell")
+set(HASKELL_BUILD_DIR "${CMAKE_BINARY_DIR}/haskell")
 
 # get build location
 execute_process(
@@ -25,13 +25,14 @@ file(GLOB_RECURSE HASKELL_SOURCES CONFIGURE_DEPENDS "${HASKELL_SRC_DIR}/*")
 add_custom_command(
 		OUTPUT ${HASKELL_LIBRARY}
 		COMMAND ${CABAL} build --builddir ${HASKELL_BUILD_DIR}
-		COMMAND ${CMAKE_COMMAND} -E copy ${HASKELL_LIBRARY} ${CMAKE_CURRENT_BINARY_DIR}
+		COMMAND ${CMAKE_COMMAND} -E copy ${HASKELL_LIBRARY} ${CMAKE_BINARY_DIR}
 		DEPENDS ${HASKELL_SOURCES}
 		WORKING_DIRECTORY ${HASKELL_SRC_DIR}
 		COMMENT "Building Haskell"
 )
 
 add_custom_target(haskell_asp ALL DEPENDS ${HASKELL_LIBRARY})
+set(HASKELL_LIBRARY ${HASKELL_LIBRARY} PARENT_SCOPE)
 
 # Linux needs the link to be explicitly defined
 if(NOT WIN32)
