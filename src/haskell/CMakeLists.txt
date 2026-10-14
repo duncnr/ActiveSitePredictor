@@ -57,4 +57,6 @@ if(NOT WIN32)
    if(NOT GHC_RTS_LIBRARY)
       message(FATAL_ERROR "Could not find GHC RTS library in ${GHC_RTS_LIB_DIR}")
    endif()
+
+  set(GHC_RTS_LIBRARY ${GHC_RTS_LIBRARY} PARENT_SCOPE)
 endif()
