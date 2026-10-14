@@ -59,7 +59,7 @@ void Window::free_surface() {
 
 bool Window::init_devices() {
 	vkb::PhysicalDeviceSelector selector{this->vkb_instance};
-	auto phys_ret = selector.set_surface(this->vk_surface).set_minimum_version(1, 3).require_dedicated_transfer_queue().select();
+	auto phys_ret = selector.set_surface(this->vk_surface).set_minimum_version(1, 3).select();
 	if (!phys_ret) {
 		fprintf(stderr, "VkBootstrap PhysicalDevice Error: %s\n", phys_ret.error().message().c_str());
 		const auto& detailed_reasons = phys_ret.detailed_failure_reasons();
