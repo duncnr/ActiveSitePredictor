@@ -62,6 +62,10 @@ bool Window::init_devices() {
 	auto phys_ret = selector.set_surface(this->vk_surface).set_minimum_version(1, 3).require_dedicated_transfer_queue().select();
 	if (!phys_ret) {
 		fprintf(stderr, "VkBootstrap PhysicalDevice Error: %s\n", phys_ret.error().message().c_str());
+		const auto& detailed_reasons = phys_ret.detailed_failure_reasons();
+		for (const std::string& reason : detailed_reasons) {
+			fprintf(stderr, "\t%s\n", reason.c_str());
+		}
 		return false;
 	}
 
