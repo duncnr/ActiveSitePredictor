@@ -41,7 +41,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	${HASKELL_LIBRARY}
 	Vulkan::Vulkan
-	vk-bootstrap
+	vk-bootstrap::vk-bootstrap
 	glfw
 )
 

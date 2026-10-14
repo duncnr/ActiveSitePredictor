@@ -13,6 +13,12 @@ struct App {
 		return glfwInit();
 	}
 
+	void loop() {
+		while (window && !window->should_close()) {
+			window->draw();
+		}
+	}
+
 	App() {
 		if (!init_glfw()) {
 			fprintf(stderr, "GLFW Failed to Initialize\n");

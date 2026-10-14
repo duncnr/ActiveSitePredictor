@@ -13,7 +13,8 @@ extern "C" {
 int main(int argc, char* argv[]) {
 	hs_init(&argc, &argv);
 
-	App app = App();
+	App app = App(); // TODO: graceful exit
+	app.loop();
 
 	hs_exit();
 	return 0;
