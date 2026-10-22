@@ -1,14 +1,15 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Retrieval (pipe) where
+module Data.Retrieval (retrieval_pipe) where
 
 import Network.HTTP.Req
 import qualified Data.Text as T
-import qualified Data.ByteString.Lazy as BS
+import qualified Data.ByteString.Lazy as BSl
+import qualified Codec.Compression.GZip as GZ
 
-pipe :: String -> IO BS.ByteString
-pipe = get_data . get_RCSB_path 
+retrieval_pipe :: String -> IO BSl.ByteString
+retrieval_pipe = get_data . get_RCSB_path 
 
 get_RCSB_path :: String -> Url Https
 get_RCSB_path eID = https 
@@ -21,8 +22,8 @@ get_RCSB_path eID = https
    "mmCIF" /:
    T.append (T.pack eID) ".cif.gz"
 
-get_data :: Url Https -> IO BS.ByteString
+get_data :: Url Https -> IO BSl.ByteString
 get_data path = runReq defaultHttpConfig $ do 
    r <- req GET path NoReqBody lbsResponse mempty
-   pure (responseBody r)
-
+   let rb = responseBody r
+   pure (GZ.decompress rb)

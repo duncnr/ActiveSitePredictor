@@ -48,6 +48,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Haskell library linkage
 add_dependencies(${PROJECT_NAME} haskell_asp)
 if(NOT WIN32)
+   message("\t\tGHC_RTS_LIBRARY: ${GHC_RTS_LIBRARY}")
    target_link_libraries(${PROJECT_NAME} PRIVATE
       ${GHC_RTS_LIBRARY}
    )
