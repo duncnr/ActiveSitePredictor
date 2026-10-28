@@ -129,13 +129,21 @@ bool Window::init_vulkan() {
 void Window::free_vulkan() {
 	this->vkb_device_dispatch.deviceWaitIdle();
 	free_frames();
+	printf("Vulkan Freed Frames\n");
 	free_command_pool();
+	printf("Vulkan Freed Command Pool\n");
 	free_swapchain_images();
+	printf("Vulkan Freed Swapchain Images\n");
 	free_pipeline();
+	printf("Vulkan Freed Pipeline\n");
 	free_swapchain();
+	printf("Vulkan Freed Swapchain\n");
 	free_devices();
+	printf("Vulkan Freed Devices\n");
 	free_surface();
+	printf("Vulkan Freed Surface\n");
 	free_instance();
+	printf("Vulkan Freed Instance\n");
 	printf("Vulkan Freed\n");
 }
 
