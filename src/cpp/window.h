@@ -43,6 +43,10 @@ struct Window {
 	// (Gamma correction for example, should be a postprocess step and not done within the swapchain)
 	vkb::Swapchain vkb_swapchain;
 
+	VkRenderPass vk_graphics_render_pass;
+	VkPipelineLayout vk_graphics_pipeline_layout;
+	VkPipeline vk_graphics_pipeline;
+
 	size_t frame;
 	std::vector<Frame> frames;
 
@@ -52,6 +56,9 @@ struct Window {
 	bool init_glfw();
 	void free_glfw();
 
+	VkShaderModule init_shader_module(const std::string& path);
+	void free_shader_module(VkShaderModule module);
+
 	bool init_instance();
 	bool init_surface();
 	bool init_devices();
@@ -60,7 +67,10 @@ struct Window {
 	bool init_swapchain_images();
 	bool init_command_pool();
 	bool init_frames();
+	bool init_pipeline();
 	bool init_vulkan();
+
+	bool recreate_swapchain();
 
 	void free_instance();
 	void free_surface();
@@ -69,6 +79,7 @@ struct Window {
 	void free_swapchain_images();
 	void free_command_pool();
 	void free_frames();
+	void free_pipeline();
 	void free_vulkan();
 
 	bool draw_swapchain();

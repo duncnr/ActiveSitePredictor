@@ -11,6 +11,9 @@ set(CMAKE_CXX_STANDARD 20)
 # Haskell compilation
 add_subdirectory(src/haskell)
 
+# GLSL compilation
+add_subdirectory(src/glsl)
+
 # TODO: Conan support?
 include(FetchContent)
 

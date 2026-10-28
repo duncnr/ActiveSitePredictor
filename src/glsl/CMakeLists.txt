@@ -1,0 +1,31 @@
+
+find_program(GLSLC glslc REQUIRED)
+
+# retrieve src files
+set(GLSL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/glsl")
+set(GLSL_BUILD_DIR "${CMAKE_BINARY_DIR}/shaders")
+file(GLOB_RECURSE GLSL_SOURCES CONFIGURE_DEPENDS
+	"${GLSL_SOURCE_DIR}/*.frag"
+	"${GLSL_SOURCE_DIR}/*.vert"
+)
+
+set(GLSL_OUTPUT_FILES) # initialize empty list
+
+foreach(GLSL_SOURCE IN LISTS GLSL_SOURCES)
+	get_filename_component(GLSL_SOURCE_NAME ${GLSL_SOURCE} NAME)
+	set(GLSL_SOURCE_OUTPUT "${GLSL_BUILD_DIR}/${GLSL_SOURCE_NAME}.spv")
+
+	add_custom_command(
+		OUTPUT ${GLSL_SOURCE_OUTPUT}
+		COMMAND ${GLSLC} ${GLSL_SOURCE} -o ${GLSL_SOURCE_OUTPUT}
+		DEPENDS ${GLSL_SOURCE}
+		WORKING_DIRECTORY ${GLSL_SOURCE_DIR}
+		COMMENT "Compiling ${GLSL_SOURCE_NAME}"
+	)
+
+	list(APPEND GLSL_OUTPUT_FILES ${GLSL_SOURCE_OUTPUT})
+endforeach()
+
+add_custom_target(glsl_compile
+	ALL DEPENDS ${GLSL_OUTPUT_FILES}
+)
