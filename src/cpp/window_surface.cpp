@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <vulkan/vulkan_core.h>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 #include "window.h"
 
 #define FRAMES_IN_FLIGHT 2
@@ -47,11 +49,11 @@ bool Window::init_swapchain_images() {
 	}
 
 	for (auto& swapchain_image_data : swapchain_images) {
-		VkImageView attachments[] = { swapchain_image_data.image_view };
+		VkImageView attachments[] = {swapchain_image_data.image_view, depth_image.image_view};
 		VkFramebufferCreateInfo framebuffer_info = {};
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebuffer_info.renderPass = this->vk_graphics_render_pass;
-		framebuffer_info.attachmentCount = 1;
+		framebuffer_info.attachmentCount = 2;
 		framebuffer_info.pAttachments = attachments;
 		framebuffer_info.width = this->vkb_swapchain.extent.width;
 		framebuffer_info.height = this->vkb_swapchain.extent.height;
@@ -85,11 +87,57 @@ bool Window::recreate_swapchain() {
 
 	free_swapchain_images();
 	free_swapchain();
+	free_depth_buffer();
 	if (!init_swapchain()) return false;
 	if (!init_swapchain_images()) return false;
+	if (!init_depth_buffer()) return false;
 
 	printf("Recreated Swapchain\n");
 	return true;
+}
+
+bool Window::init_depth_buffer() {
+	VkExtent3D extent_3d = {vkb_swapchain.extent.width, vkb_swapchain.extent.height, 1};
+
+	// 1. Configure VkImageCreateInfo
+	VkImageCreateInfo dimg_info = {};
+	dimg_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	dimg_info.imageType = VK_IMAGE_TYPE_2D;
+	dimg_info.format = VK_FORMAT_D32_SFLOAT; // TODO: this is hardcoded
+	dimg_info.extent = extent_3d;
+	dimg_info.mipLevels = 1;
+	dimg_info.arrayLayers = 1;
+	dimg_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	dimg_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+	dimg_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+	VmaAllocationCreateInfo dimg_allocinfo = {};
+	dimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	dimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	if (vmaCreateImage(vma_allocator, &dimg_info, &dimg_allocinfo, &depth_image.image, &depth_image.allocation, nullptr) != VK_SUCCESS)
+		return false;
+
+	VkImageViewCreateInfo dview_info = {};
+	dview_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	dview_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	dview_info.image = depth_image.image;
+	dview_info.format = VK_FORMAT_D32_SFLOAT;
+	dview_info.subresourceRange.baseMipLevel = 0;
+	dview_info.subresourceRange.levelCount = 1;
+	dview_info.subresourceRange.baseArrayLayer = 0;
+	dview_info.subresourceRange.layerCount = 1;
+	dview_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	if (vkCreateImageView(vkb_device.device, &dview_info, nullptr, &depth_image.image_view) != VK_SUCCESS)
+		return false;
+
+	return true;
+}
+
+void Window::free_depth_buffer() {
+	this->vkb_device_dispatch.destroyImageView(depth_image.image_view, nullptr);
+	vmaDestroyImage(vma_allocator, depth_image.image, depth_image.allocation);
 }
 
 bool Window::init_frames() {
@@ -135,7 +183,7 @@ void Window::free_frames() {
 
 // Presentation
 
-bool Window::draw_swapchain() {
+bool Window::draw_swapchain(const std::vector<glm::vec4>& points) {
 	auto& frame_data = this->frames[this->frame]; // current frame data
 
 	VkCommandBufferBeginInfo command_buffer_begin_info = {};
@@ -147,15 +195,18 @@ bool Window::draw_swapchain() {
 		return false;
 	}
 
+	VkClearValue clear_color{{{0.0f, 0.0f, 1.0f, 1.0f}}};
+	VkClearValue clear_depth = {}; clear_depth.depthStencil.depth = 1.0f;
+	VkClearValue clear_values[] = {clear_color, clear_depth};
+
 	VkRenderPassBeginInfo render_pass_info = {};
 	render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	render_pass_info.renderPass = this->vk_graphics_render_pass;
 	render_pass_info.framebuffer = this->swapchain_images[this->swapchain_image].framebuffer;
 	render_pass_info.renderArea.offset = { 0, 0 };
 	render_pass_info.renderArea.extent = this->vkb_swapchain.extent;
-	VkClearValue clearColor{ { { 0.0f, 0.0f, 1.0f, 1.0f } } };
-	render_pass_info.clearValueCount = 1;
-	render_pass_info.pClearValues = &clearColor;
+	render_pass_info.clearValueCount = 2;
+	render_pass_info.pClearValues = &clear_values[0];
 
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
@@ -173,7 +224,19 @@ bool Window::draw_swapchain() {
 	this->vkb_device_dispatch.cmdSetScissor(frame_data.command_buffer, 0, 1, &scissor);
 	this->vkb_device_dispatch.cmdBeginRenderPass(frame_data.command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	this->vkb_device_dispatch.cmdBindPipeline(frame_data.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->vk_graphics_pipeline);
-	this->vkb_device_dispatch.cmdDraw(frame_data.command_buffer, 3, 1, 0, 0);
+
+	VkDeviceSize offset = 0;
+	this->vkb_device_dispatch.cmdBindVertexBuffers(frame_data.command_buffer, 0, 1, &mesh.vertex_buffer.buffer, &offset);
+	auto view = glm::lookAt(glm::vec3{cos(curtime * 0.0001) * 2, sin(curtime * 0.0001) * 2, 0}, glm::vec3{}, glm::vec3{0, 0, 1});
+	auto proj = glm::perspective(glm::radians(90.0f), static_cast<float>(vkb_swapchain.extent.width) / static_cast<float>(vkb_swapchain.extent.height), 0.1f, 100.0f);
+	MeshPushConstants constants;
+	constants.inv_view_proj = proj * view;
+	for (glm::vec4 pos : points) {
+		constants.pos = pos;
+		this->vkb_device_dispatch.cmdPushConstants(frame_data.command_buffer, vk_graphics_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(MeshPushConstants), &constants);
+		this->vkb_device_dispatch.cmdDraw(frame_data.command_buffer, mesh.vertices.size(), 1, 0, 0);
+	}
+
 	this->vkb_device_dispatch.cmdEndRenderPass(frame_data.command_buffer);
 
 	if (this->vkb_device_dispatch.endCommandBuffer(frame_data.command_buffer) != VK_SUCCESS) {
@@ -181,10 +244,12 @@ bool Window::draw_swapchain() {
 		return false;
 	}
 
+	curtime += 1;
+
 	return true;
 }
 
-void Window::present_swapchain() {
+void Window::present_swapchain(const std::vector<glm::vec4>& points) {
 	auto& current_frame = this->frames[this->frame];
 
 	this->vkb_device_dispatch.waitForFences(1, &current_frame.fence_inflight, VK_TRUE, UINT64_MAX);
@@ -201,7 +266,7 @@ void Window::present_swapchain() {
 		return;
 	}
 
-	if (!draw_swapchain()) return;
+	if (!draw_swapchain(points)) return;
 
 	auto& current_swapchain_image = this->swapchain_images[this->swapchain_image];
 	VkSemaphore wait_semaphores[] = {current_frame.semaphore_available};
@@ -244,8 +309,8 @@ void Window::present_swapchain() {
 	}
 }
 
-void Window::draw() {
+void Window::draw(const std::vector<glm::vec4>& points) {
 	glfwPollEvents();
-	present_swapchain();
+	present_swapchain(points);
 	this->frame = (this->frame + 1) % FRAMES_IN_FLIGHT;
 }

@@ -3,7 +3,10 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <VkBootstrap.h>
-#include "VkBootstrapDispatch.h"
+#include <VkBootstrapDispatch.h>
+#include "vk_mem_alloc.h"
+#include "mesh.h"
+#include <glm/mat4x4.hpp>
 
 struct Frame {
 	VkFence fence_inflight;          // GPU -> CPU sync
@@ -16,6 +19,12 @@ struct SwapchainImage {
     VkImage image;
     VkImageView image_view;
     VkFramebuffer framebuffer;
+};
+
+struct DepthImage {
+	VkImage image;
+	VmaAllocation allocation;
+	VkImageView image_view;
 };
 
 struct Window {
@@ -41,7 +50,10 @@ struct Window {
 	// NOTE THAT we should NOT be rendering directly to the swapchain
 	// We should be rendering to an FP16 (RBGA_F16) texture instead, then clamping to the framebuffer
 	// (Gamma correction for example, should be a postprocess step and not done within the swapchain)
+	// For simplicity however, we're just going to render directly
 	vkb::Swapchain vkb_swapchain;
+
+	DepthImage depth_image;
 
 	VkRenderPass vk_graphics_render_pass;
 	VkPipelineLayout vk_graphics_pipeline_layout;
@@ -49,9 +61,15 @@ struct Window {
 
 	size_t frame;
 	std::vector<Frame> frames;
+	size_t curtime;
 
 	uint32_t swapchain_image;
 	std::vector<SwapchainImage> swapchain_images;
+
+	VmaAllocator vma_allocator;
+	Mesh mesh;
+
+	glm::mat4x4 camera_transform = {};
 
 	bool init_glfw();
 	void free_glfw();
@@ -65,11 +83,14 @@ struct Window {
 	bool init_queues();
 	bool init_swapchain();
 	bool init_swapchain_images();
+	bool init_depth_buffer();
 	bool init_command_pool();
 	bool init_frames();
 	bool init_pipeline();
-	bool init_vulkan();
+	bool init_allocator();
+	bool init_meshes();
 
+	bool upload_mesh();
 	bool recreate_swapchain();
 
 	void free_instance();
@@ -77,15 +98,20 @@ struct Window {
 	void free_devices();
 	void free_swapchain();
 	void free_swapchain_images();
+	void free_depth_buffer();
 	void free_command_pool();
 	void free_frames();
 	void free_pipeline();
+	void free_allocator();
+	void free_meshes();
+
+	bool init_vulkan();
 	void free_vulkan();
 
-	bool draw_swapchain();
 	bool should_close();
-	void present_swapchain();
-	void draw();
+	bool draw_swapchain(const std::vector<glm::vec4>& points);
+	void present_swapchain(const std::vector<glm::vec4>& points);
+	void draw(const std::vector<glm::vec4>& points);
 
 	Window();
 	~Window();

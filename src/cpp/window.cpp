@@ -103,6 +103,8 @@ void Window::free_command_pool() {
 }
 
 bool Window::init_vulkan() {
+	curtime = 0;
+
 	if (!init_instance()) return false;
 	printf("Vulkan Initiated Instance\n");
 	if (!init_surface()) return false;
@@ -113,6 +115,10 @@ bool Window::init_vulkan() {
 	printf("Vulkan Initiated Queues\n");
 	if (!init_swapchain()) return false;
 	printf("Vulkan Initiated Swapchain\n");
+	if (!init_allocator()) return false;
+	printf("Vulkan Initialized Allocator\n");
+	if (!init_depth_buffer()) return false;
+	printf("Vulkan Initiated Depth Buffer\n");
 	if (!init_pipeline()) return false;
 	printf("Vulkan Initiated Pipeline\n");
 	if (!init_swapchain_images()) return false;
@@ -121,6 +127,8 @@ bool Window::init_vulkan() {
 	printf("Vulkan Initiated Command Pool\n");
 	if (!init_frames()) return false;
 	printf("Vulkan Initiated Frames\n");
+	if (!init_meshes()) return false;
+	printf("Vulkan Initializied Meshes\n");
 
 	printf("Vulkan Initialized\n");
 	return true;
@@ -128,12 +136,19 @@ bool Window::init_vulkan() {
 
 void Window::free_vulkan() {
 	this->vkb_device_dispatch.deviceWaitIdle();
+
+	free_meshes();
+	printf("Vulkan Freed Meshes\n");
 	free_frames();
 	printf("Vulkan Freed Frames\n");
 	free_command_pool();
 	printf("Vulkan Freed Command Pool\n");
 	free_swapchain_images();
 	printf("Vulkan Freed Swapchain Images\n");
+	free_depth_buffer();
+	printf("Vulkan Freed Depth Buffer\n");
+	free_allocator();
+	printf("Vulkan Freed Allocator\n");
 	free_pipeline();
 	printf("Vulkan Freed Pipeline\n");
 	free_swapchain();
@@ -144,6 +159,7 @@ void Window::free_vulkan() {
 	printf("Vulkan Freed Surface\n");
 	free_instance();
 	printf("Vulkan Freed Instance\n");
+
 	printf("Vulkan Freed\n");
 }
 

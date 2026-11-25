@@ -20,17 +20,20 @@ include(FetchContent)
 # External libraries
 find_package(Vulkan REQUIRED)
 
-FetchContent_Declare(
-	glfw
-	URL "https://github.com/glfw/glfw/archive/refs/tags/3.5.1.zip"
-)
-FetchContent_MakeAvailable(glfw)
+macro(FETCH NAME REPO TAG)
+	FetchContent_Declare(
+		${NAME}
+		GIT_REPOSITORY ${REPO}
+		GIT_TAG ${TAG}
+		GIT_SUBMODULES ""
+	)
+	FetchContent_MakeAvailable(${NAME})
+endmacro()
 
-FetchContent_Declare(
-	vk-bootstrap
-	URL "https://github.com/charles-lunarg/vk-bootstrap/archive/refs/tags/v1.4.365.zip"
-)
-FetchContent_MakeAvailable(vk-bootstrap)
+FETCH(glfw https://github.com/glfw/glfw.git 3.5.1)
+FETCH(vk-bootstrap https://github.com/charles-lunarg/vk-bootstrap.git v1.4.367)
+FETCH(VulkanMemoryAllocator https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git v3.5.0)
+FETCH(glm https://github.com/g-truc/glm.git 1.0.3)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/cpp/*.cpp")
 list(APPEND SOURCES "src/main.cpp")
@@ -44,34 +47,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	${HASKELL_LIBRARY}
 	Vulkan::Vulkan
-	vk-bootstrap::vk-bootstrap
 	glfw
+	vk-bootstrap::vk-bootstrap
+	VulkanMemoryAllocator
+	glm
 )
 
 # Haskell library linkage
 add_dependencies(${PROJECT_NAME} haskell_asp)
 if(NOT WIN32)
-   message("\t\tGHC_RTS_LIBRARY: ${GHC_RTS_LIBRARY}")
    target_link_libraries(${PROJECT_NAME} PRIVATE
       ${GHC_RTS_LIBRARY}
    )
 endif()
-
-# for later.. copy resources (models, shaders) after build
-#[[
-add_custom_command(
-	TARGET ${PROJECT_NAME}
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-		"${CMAKE_SOURCE_DIR}/src/resource"
-		"$<TARGET_FILE_DIR:${PROJECT_NAME}>/resource"
-)
-
-# runs executable after build
-add_custom_command(
-	TARGET ${PROJECT_NAME}
-	POST_BUILD
-	COMMAND $<TARGET_FILE:${PROJECT_NAME}>
-	WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-)
-#]]

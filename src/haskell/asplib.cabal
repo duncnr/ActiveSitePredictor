@@ -8,9 +8,11 @@ foreign-library asplib
 	-- options:             standalone
 	hs-source-dirs:      .
 
+	-- required definitions for windows
 	if os(Windows)
-		-- required definitions for windows
-	    mod-def-file: asplib-def.def
+		mod-def-file: asplib-def.def
+	if os(Windows)
+		options: standalone
 
 	if os(Linux)
 		ghc-options:

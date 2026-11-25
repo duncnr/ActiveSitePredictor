@@ -51,6 +51,21 @@ bool Window::init_pipeline() {
 	color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+	VkAttachmentDescription depth_attachment = {};
+	depth_attachment.flags = 0;
+	depth_attachment.format = VK_FORMAT_D32_SFLOAT;
+	depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depth_attachment_ref = {};
+	depth_attachment_ref.attachment = 1;
+	depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 	VkAttachmentReference color_attachment_ref = {};
 	color_attachment_ref.attachment = 0;
 	color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -59,6 +74,11 @@ bool Window::init_pipeline() {
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &color_attachment_ref;
+	subpass.pDepthStencilAttachment = &depth_attachment_ref;
+
+	VkAttachmentDescription attachment_desc[2] = {color_attachment, depth_attachment};
+
+
 
 	VkSubpassDependency dependency = {};
 	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -68,14 +88,24 @@ bool Window::init_pipeline() {
 	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+	VkSubpassDependency depth_dependency = {};
+	depth_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	depth_dependency.dstSubpass = 0;
+	depth_dependency.srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	depth_dependency.srcAccessMask = 0;
+	depth_dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	depth_dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	VkSubpassDependency subpass_dependencies[2] = {dependency, depth_dependency};
+
 	VkRenderPassCreateInfo render_pass_info = {};
 	render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	render_pass_info.attachmentCount = 1;
-	render_pass_info.pAttachments = &color_attachment;
+	render_pass_info.attachmentCount = 2;
+	render_pass_info.pAttachments = &attachment_desc[0];
 	render_pass_info.subpassCount = 1;
 	render_pass_info.pSubpasses = &subpass;
-	render_pass_info.dependencyCount = 1;
-	render_pass_info.pDependencies = &dependency;
+	render_pass_info.dependencyCount = 2;
+	render_pass_info.pDependencies = &subpass_dependencies[0];
 
 	if (this->vkb_device_dispatch.createRenderPass(&render_pass_info, nullptr, &this->vk_graphics_render_pass) != VK_SUCCESS) {
 		fprintf(stderr, "VkBootstrap VkRenderPass Error\n");
@@ -104,10 +134,15 @@ bool Window::init_pipeline() {
 
 	VkPipelineShaderStageCreateInfo shader_stages[] = { vert_stage_info, frag_stage_info };
 
+
+	VertexInputDescription vertex_input_desc = Vertex::get_vertex_description();
+
 	VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
 	vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertex_input_info.vertexBindingDescriptionCount = 0;
-	vertex_input_info.vertexAttributeDescriptionCount = 0;
+	vertex_input_info.pVertexAttributeDescriptions = vertex_input_desc.attributes.data();
+	vertex_input_info.vertexAttributeDescriptionCount = vertex_input_desc.attributes.size();
+	vertex_input_info.pVertexBindingDescriptions = vertex_input_desc.bindings.data();
+	vertex_input_info.vertexBindingDescriptionCount = vertex_input_desc.bindings.size();
 
 	VkPipelineInputAssemblyStateCreateInfo input_assembly = {};
 	input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -164,10 +199,16 @@ bool Window::init_pipeline() {
 	color_blending.blendConstants[2] = 0.0f;
 	color_blending.blendConstants[3] = 0.0f;
 
+	VkPushConstantRange push_constant;
+	push_constant.offset = 0;
+	push_constant.size = sizeof(MeshPushConstants);
+	push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 	VkPipelineLayoutCreateInfo pipeline_layout_info = {};
 	pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipeline_layout_info.setLayoutCount = 0;
-	pipeline_layout_info.pushConstantRangeCount = 0;
+	pipeline_layout_info.pPushConstantRanges = &push_constant;
+	pipeline_layout_info.pushConstantRangeCount = 1;
 
 	if (this->vkb_device_dispatch.createPipelineLayout(&pipeline_layout_info, nullptr, &this->vk_graphics_pipeline_layout) != VK_SUCCESS) {
 		fprintf(stderr, "VkBootstrap VkPipelineLayout Error\n");
@@ -181,6 +222,17 @@ bool Window::init_pipeline() {
 	dynamic_info.dynamicStateCount = static_cast<uint32_t>(dynamic_states.size());
 	dynamic_info.pDynamicStates = dynamic_states.data();
 
+	VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_state = {};
+    pipeline_depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    pipeline_depth_stencil_state.pNext = nullptr;
+    pipeline_depth_stencil_state.depthTestEnable =  VK_TRUE;
+    pipeline_depth_stencil_state.depthWriteEnable = VK_TRUE;
+    pipeline_depth_stencil_state.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+    pipeline_depth_stencil_state.depthBoundsTestEnable = VK_FALSE;
+    pipeline_depth_stencil_state.minDepthBounds = 0.0f;
+    pipeline_depth_stencil_state.maxDepthBounds = 1.0f;
+    pipeline_depth_stencil_state.stencilTestEnable = VK_FALSE;
+
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipeline_info.stageCount = 2;
@@ -192,6 +244,7 @@ bool Window::init_pipeline() {
 	pipeline_info.pMultisampleState = &multisampling;
 	pipeline_info.pColorBlendState = &color_blending;
 	pipeline_info.pDynamicState = &dynamic_info;
+	pipeline_info.pDepthStencilState = &pipeline_depth_stencil_state;
 	pipeline_info.layout = this->vk_graphics_pipeline_layout;
 	pipeline_info.renderPass = this->vk_graphics_render_pass;
 	pipeline_info.subpass = 0;
