@@ -11,7 +11,12 @@ layout(push_constant) uniform constants {
 	vec4 pos;
 } PushConstants;
 
+const vec3 ambient = vec3(0.1, 0.15, 0.2);
+
 void main() {
 	gl_Position = PushConstants.inv_view_proj * vec4(PushConstants.pos.xyz + vPosition, 1.0);
-	fragColor = vNormal;
+
+	vec3 direct = vec3(1, 1.25, 1) * max(dot(vNormal, normalize(vec3(0, 0, 1))), 0);
+	vec3 albedo = vec3(PushConstants.pos.w, 0.1, 0.1);
+	fragColor = albedo * (ambient + direct);
 }

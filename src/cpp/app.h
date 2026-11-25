@@ -16,8 +16,9 @@ struct App {
 
 	void loop() {
 		std::vector<glm::vec4> points = {
-			glm::vec4{0.1f, 0, 0, 1},
-			glm::vec4{0.5f, 0, 0, 1}
+			glm::vec4{1, 0, 0, 1},
+			glm::vec4{0, 0, 0, 1},
+			glm::vec4{0, 0, 1, 1}
 		};
 		while (window && !window->should_close()) {
 			window->draw(points);

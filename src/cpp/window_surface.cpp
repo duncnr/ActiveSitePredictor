@@ -86,11 +86,11 @@ bool Window::recreate_swapchain() {
 	this->vkb_device_dispatch.deviceWaitIdle();
 
 	free_swapchain_images();
-	free_swapchain();
 	free_depth_buffer();
+	free_swapchain();
 	if (!init_swapchain()) return false;
-	if (!init_swapchain_images()) return false;
 	if (!init_depth_buffer()) return false;
+	if (!init_swapchain_images()) return false;
 
 	printf("Recreated Swapchain\n");
 	return true;
@@ -227,7 +227,7 @@ bool Window::draw_swapchain(const std::vector<glm::vec4>& points) {
 
 	VkDeviceSize offset = 0;
 	this->vkb_device_dispatch.cmdBindVertexBuffers(frame_data.command_buffer, 0, 1, &mesh.vertex_buffer.buffer, &offset);
-	auto view = glm::lookAt(glm::vec3{cos(curtime * 0.0001) * 2, sin(curtime * 0.0001) * 2, 0}, glm::vec3{}, glm::vec3{0, 0, 1});
+	auto view = glm::lookAt(glm::vec3{cos(curtime * 0.0001) * 2, sin(curtime * 0.0001) * 2, 0.1f}, glm::vec3{}, glm::vec3{0, 0, -1});
 	auto proj = glm::perspective(glm::radians(90.0f), static_cast<float>(vkb_swapchain.extent.width) / static_cast<float>(vkb_swapchain.extent.height), 0.1f, 100.0f);
 	MeshPushConstants constants;
 	constants.inv_view_proj = proj * view;

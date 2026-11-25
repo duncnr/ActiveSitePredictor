@@ -53,6 +53,8 @@ struct Window {
 	// For simplicity however, we're just going to render directly
 	vkb::Swapchain vkb_swapchain;
 
+	// unless we start doing triple buffering, we only need one of these,
+	// becasue the depth buffer isn't being presented to the screen
 	DepthImage depth_image;
 
 	VkRenderPass vk_graphics_render_pass;
