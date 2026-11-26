@@ -3,6 +3,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include "window.h"
+#include <chrono>
 
 #define FRAMES_IN_FLIGHT 2
 
@@ -195,7 +196,7 @@ bool Window::draw_swapchain(const std::vector<glm::vec4>& points) {
 		return false;
 	}
 
-	VkClearValue clear_color{{{0.0f, 0.0f, 1.0f, 1.0f}}};
+	VkClearValue clear_color{{{0.1f, 0.2f, 0.4f, 1.0f}}};
 	VkClearValue clear_depth = {}; clear_depth.depthStencil.depth = 1.0f;
 	VkClearValue clear_values[] = {clear_color, clear_depth};
 
@@ -227,8 +228,9 @@ bool Window::draw_swapchain(const std::vector<glm::vec4>& points) {
 
 	VkDeviceSize offset = 0;
 	this->vkb_device_dispatch.cmdBindVertexBuffers(frame_data.command_buffer, 0, 1, &mesh.vertex_buffer.buffer, &offset);
-	auto view = glm::lookAt(glm::vec3{cos(curtime * 0.0001) * 2, sin(curtime * 0.0001) * 2, 0.1f}, glm::vec3{}, glm::vec3{0, 0, -1});
-	auto proj = glm::perspective(glm::radians(90.0f), static_cast<float>(vkb_swapchain.extent.width) / static_cast<float>(vkb_swapchain.extent.height), 0.1f, 100.0f);
+	//auto view = glm::lookAt(glm::vec3{cos(curtime * 0.0001) * 2, sin(curtime * 0.0001) * 2, 0.1f}, glm::vec3{}, glm::vec3{0, 0, -1});
+	auto view = glm::lookAt(camera_pos, glm::vec3{}, glm::vec3{0, 0, -1});
+	auto proj = glm::perspective(glm::radians(90.0f), static_cast<float>(vkb_swapchain.extent.width) / static_cast<float>(vkb_swapchain.extent.height), 1.0f, 1000.0f);
 	MeshPushConstants constants;
 	constants.inv_view_proj = proj * view;
 	for (glm::vec4 pos : points) {
@@ -309,8 +311,14 @@ void Window::present_swapchain(const std::vector<glm::vec4>& points) {
 	}
 }
 
-void Window::draw(const std::vector<glm::vec4>& points) {
+double Window::draw(const std::vector<glm::vec4>& points) {
+	auto start = std::chrono::steady_clock::now();
+
 	glfwPollEvents();
 	present_swapchain(points);
 	this->frame = (this->frame + 1) % FRAMES_IN_FLIGHT;
+
+	auto end = std::chrono::steady_clock::now();
+	std::chrono::duration<double> elapsed = end - start;
+	return elapsed.count();
 }

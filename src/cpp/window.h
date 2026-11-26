@@ -71,7 +71,7 @@ struct Window {
 	VmaAllocator vma_allocator;
 	Mesh mesh;
 
-	glm::mat4x4 camera_transform = {};
+	glm::vec3 camera_pos = {};
 
 	bool init_glfw();
 	void free_glfw();
@@ -113,7 +113,7 @@ struct Window {
 	bool should_close();
 	bool draw_swapchain(const std::vector<glm::vec4>& points);
 	void present_swapchain(const std::vector<glm::vec4>& points);
-	void draw(const std::vector<glm::vec4>& points);
+	double draw(const std::vector<glm::vec4>& points); // returns frametime
 
 	Window();
 	~Window();
